@@ -1,0 +1,7 @@
+Metadata-Version: 2.4
+Name: subfinderhunter
+Version: 1.0.0
+Summary: Passive subdomain discovery CLI
+Requires-Python: >=3.10
+Requires-Dist: requests
+Requires-Dist: dnspython
