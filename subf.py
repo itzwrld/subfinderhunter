@@ -5,13 +5,26 @@ from sources import collect_subdomains
 from resolver import resolve_subdomains
 from exporter import save_subdomains, save_resolved
 
+
 VERSION = "1.1.0"
+
+BANNER = r"""
+  ███████╗██╗   ██╗██████╗ ██╗  ██╗██╗   ██╗███╗   ██╗████████╗███████╗██████╗
+  ██╔════╝██║   ██║██╔══██╗██║  ██║██║   ██║████╗  ██║╚══██╔══╝██╔════╝██╔══██╗
+  ███████╗██║   ██║██████╔╝███████║██║   ██║██╔██╗ ██║   ██║   █████╗  ██████╔╝
+  ╚════██║██║   ██║██╔══██╗██╔══██║██║   ██║██║╚██╗██║   ██║   ██╔══╝  ██╔══██╗
+  ███████║╚██████╔╝██████╔╝██║  ██║╚██████╔╝██║ ╚████║   ██║   ███████╗██║  ██║
+  ╚══════╝ ╚═════╝ ╚═════╝ ╚═╝  ╚═╝ ╚═════╝ ╚═╝  ╚═══╝   ╚═╝   ╚══════╝╚═╝  ╚═╝
+
+              SUBDOMAIN DISCOVERY TOOL
+"""
 
 
 def main():
+
     parser = argparse.ArgumentParser(
         prog="subf",
-        description="SubFinderHunter - Passive Subdomain Discovery"
+        description="SubHunter - Subdomain Discovery Tool"
     )
 
     parser.add_argument(
@@ -40,34 +53,35 @@ def main():
     )
 
     parser.add_argument(
-        "-o", "--output",
+        "-o",
+        "--output",
         default="results/resolved.txt",
-        help="Ruta del archivo de resultados"
+        help="Archivo de salida (predeterminado: results/resolved.txt)"
     )
 
     parser.add_argument(
         "--version",
         action="version",
-        version=f"SubFinderHunter {VERSION}"
+        version=f"SubHunter {VERSION}"
     )
 
     args = parser.parse_args()
 
     if args.no_resolve and (args.r or args.ipv6):
-        parser.error("--no-resolve no puede combinarse con -r o -ipv6")
+        parser.error(
+            "--no-resolve no puede combinarse con -r o -ipv6"
+        )
 
     domain = args.u.lower().strip().rstrip(".")
 
-    print("""
-========================================
-          SUBFINDERHUNTER
-========================================
-""")
+    print(BANNER)
+    print(f"       Version: {VERSION}")
+    print("       Author: itzwrld\n")
 
-    print(f"[*] Dominio: {domain}")
-    print("[*] Recopilando subdominios...\n")
+    print(f"[*] Dominio objetivo: {domain}")
+    print("[*] Iniciando recopilación pasiva...\n")
 
-    # Recopilación
+    # Recopilar subdominios
     hosts = collect_subdomains(domain)
 
     print(f"\n[+] Subdominios encontrados: {len(hosts)}")
@@ -78,7 +92,7 @@ def main():
         "results/subdomains.txt"
     )
 
-    # Resolución DNS activada por defecto
+    # Resolver DNS automáticamente
     if not args.no_resolve:
 
         print("\n[*] Resolviendo DNS...")
@@ -89,12 +103,19 @@ def main():
             ipv6=args.ipv6
         )
 
-        save_resolved(results, args.output)
+        # Guardar solamente los que tienen IP
+        save_resolved(
+            results,
+            args.output
+        )
 
         print("\n========== RESUMEN ==========")
-        print(f"Encontrados: {len(hosts)}")
-        print(f"Con IP: {len(results)}")
-        print(f"Sin IP: {len(hosts) - len(results)}")
+        print(f"Subdominios encontrados: {len(hosts)}")
+        print(f"Subdominios con IP: {len(results)}")
+        print(f"Sin resolución: {len(hosts) - len(results)}")
+
+    else:
+        print("\n[*] Resolución DNS desactivada.")
 
     print("\n[+] Proceso finalizado.")
 
